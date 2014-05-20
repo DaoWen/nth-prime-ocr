@@ -1,0 +1,11 @@
+This application finds the Nth prime number by filtering all candidate integers
+(in parallel) up to a known upper bound. The candidates are filtered in batches
+against batches of prime factors, which are collected on-demand from the known
+primes computed thus far. The computation is seeded by computing a small set of
+prime numbers serially. The confirmed prime batches are counted to determine
+the Nth prime number, which is printed as the final result.
+
+There are two implementations of this application. The ocr directory has an
+implementation using the OCR v0.9 API directly. The CnC-OCR directory has a
+version that uses the CnC API on top of OCR v0.9. Both directories have a
+run_test.sh script to build and test the applications.
