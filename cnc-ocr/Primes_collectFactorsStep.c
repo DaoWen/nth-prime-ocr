@@ -1,5 +1,4 @@
-
-#include "Common.h"
+#include "Primes.h"
 
 /**
  * Collect prime numbers into batches of prime factors
@@ -15,16 +14,14 @@
  *  - factorsReq: The request for this block of factors (no data--just keeps it demand-driven)
  *
  */
-void collectFactorsStep(u32 i, u32 j, u32 batchOffset, u32 factorCount, collectedItem collected,
-        primesInfoItem primesInfo, primesItem primes, factorsReqItem factorsReq, Context *context) {
-    cncHandle_t collectedBatchHandle = collected.handle;
-    PrimeFactor *collectedBatch = collected.item;
-    assert(primes.item && "Should never require factors past requested primes.");
-    bool hitSummarizedBatch = !IS_FACTOR_BATCH(primesInfo.item);
+void collectFactorsStep(cncTag_t i, cncTag_t j, cncTag_t batchOffset, cncTag_t factorCount, PrimeFactor *collected, CandidatesInfo *primesInfo, uIntPrime *primes, void *factorsReq, PrimesCtx *ctx) {
+    PrimeFactor *collectedBatch = collected;
+    assert(primes && "Should never require factors past requested primes.");
+    bool hitSummarizedBatch = !IS_FACTOR_BATCH(primesInfo);
     // Make sure we have memory for collecting the factors
     if (!collectedBatch) {
         DEBUG_LOG("Starting factor batch %u\n", i);
-        collectedBatchHandle = cncCreateItem_factors(&collectedBatch, FACTOR_BATCH_COUNT);
+        collectedBatch = cncCreateItemVector_factors(FACTOR_BATCH_COUNT);
         assert(factorCount == 0 && "Should be starting a new batch of factors");
     }
     // Process next batch
@@ -33,8 +30,8 @@ void collectFactorsStep(u32 i, u32 j, u32 batchOffset, u32 factorCount, collecte
         collectedBatch[factorCount++] = PRIME_FACTOR_OF(UINTP_MAX_ROOT);
     }
     else {
-        while (batchOffset<primesInfo.item->count && factorCount<FACTOR_BATCH_COUNT) {
-            uIntPrime p = primes.item[batchOffset++];
+        while (batchOffset<primesInfo->count && factorCount<FACTOR_BATCH_COUNT) {
+            uIntPrime p = primes[batchOffset++];
             collectedBatch[factorCount++] = PRIME_FACTOR_OF(p);
         }
     }
@@ -44,22 +41,20 @@ void collectFactorsStep(u32 i, u32 j, u32 batchOffset, u32 factorCount, collecte
     if (hitSummarizedBatch || factorCount>=FACTOR_BATCH_COUNT) {
         assert(collectedBatch[0].prime != 0 && "Writing back garbage");
         // output filled batch
-        cncPut_factors(collectedBatchHandle, i, context);
+        cncPut_factors(collectedBatch, i, ctx);
         // recur, continuing work on current input batch (new factor batch)
-        cncPrescribe_collectFactorsStep(i+1, j, batchOffset, 0, context);
+        cncPrescribe_collectFactorsStep(i+1, j, batchOffset, 0, ctx);
         // output empty (new) factor batch for next
-        cncPut_collected(CNC_NULL_HANDLE, i+1, j, context);
+        cncPut_collected(NULL, i+1, j, ctx);
         DEBUG_LOG("Created factor batch %u\n", i);
     }
     // Input primes batch exhausted
     else {
-        assert(batchOffset==primesInfo.item->count && "Dropped input primes.");
+        assert(batchOffset==primesInfo->count && "Dropped input primes.");
         // recur, continuing to collect in current factor batch (new input batch)
-        cncPrescribe_collectFactorsStep(i, j+1, 0, factorCount, context);
+        cncPrescribe_collectFactorsStep(i, j+1, 0, factorCount, ctx);
         // output current factor batch for next
-        cncPut_collected(collectedBatchHandle, i, j+1, context);
+        cncPut_collected(collectedBatch, i, j+1, ctx);
         DEBUG_LOG("Collecting factors from primes batch %u\n", j);
     }
 }
-
-

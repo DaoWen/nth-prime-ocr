@@ -1,7 +1,6 @@
+#include "Primes.h"
 
-#include "Common.h"
-
-void nextGridFor(u32 totalWidth, u32 span, u32 row, u32 col, u32 *rowOut, u32 *colOut) {
+void nextGridFor(u32 totalWidth, u32 span, u32 row, u32 col, cncTag_t *rowOut, cncTag_t *colOut) {
     if ((col+1)*span >= totalWidth) {
         while (col > 0 && col%2 == 0) {
             col /= 2;
@@ -12,10 +11,12 @@ void nextGridFor(u32 totalWidth, u32 span, u32 row, u32 col, u32 *rowOut, u32 *c
     *colOut = col;
 }
 
-void reducerStep(u32 width, u32 span, u32 row, u32 col, reducedItem iLhs, reducedItem iRhs, Context *context) {
+/**
+ * Step function defintion for "reducerStep"
+ */
+void reducerStep(cncTag_t width, cncTag_t span, cncTag_t row, cncTag_t col, ReducedResult *lhs, ReducedResult *rhs, PrimesCtx *ctx) {
     // Combine lhs and rhs
-    cncHandle_t targetHandle;
-    ReducedResult *target, *lhs = iLhs.item, *rhs = iRhs.item;
+    ReducedResult *target;
     assert(lhs != rhs && "Aliased inputs");
     assert(lhs != NULL && rhs != NULL && "Shouldn't have null inputs to combine");
     assert((lhs->batchLimit == 0 || rhs->batchLimit > 0) && "Can't have full lhs and summarized rhs");
@@ -23,7 +24,6 @@ void reducerStep(u32 width, u32 span, u32 row, u32 col, reducedItem iLhs, reduce
     // Case: both fit in rhs's allocated space
     if (rhs->batchLimit >= newBatchCount) {
         target = rhs;
-        targetHandle = iRhs.handle;
     }
     // Case: need to allocate a new block
     else {
@@ -31,7 +31,7 @@ void reducerStep(u32 width, u32 span, u32 row, u32 col, reducedItem iLhs, reduce
         size_t newBatchLimit = rhs->batchLimit;
         while (newBatchLimit < newBatchCount) newBatchLimit *= 2;
         size_t newSize = sizeof(ReducedResult)+newBatchLimit*sizeof(BatchRef);
-        targetHandle = cncCreateItemSized_reduced(&target, newSize);
+        target = cncCreateItemSized_reduced(newSize);
         target->batchLimit = newBatchLimit;
     }
     // copy rhs's entries (careful! target and rhs may be aliased!)
@@ -43,16 +43,15 @@ void reducerStep(u32 width, u32 span, u32 row, u32 col, reducedItem iLhs, reduce
     target->offset = rhs->offset + lhs->offset;
     target->batchCount = newBatchCount;
     // clean up
-    assert(iLhs.handle != targetHandle);
-    CNC_DESTROY_ITEM(iLhs.handle); // free lhs memory
-    if (iRhs.handle != targetHandle) CNC_DESTROY_ITEM(iRhs.handle); // free rhs memory if not used
+    assert(lhs != target);
+    cncFree(lhs); // free lhs memory
+    if (rhs != target) cncFree(rhs); // free rhs memory if not used
     // Output
     nextGridFor(width, span, row, col, &row, &col);
     if (col%2 == 0 && row > 0) {
         // Combine this instance with the right neighbor (i.e. col+1)
-        cncPrescribe_reducerStep(width, span*2, row-1, col/2, context);
+        cncPrescribe_reducerStep(width, span*2, row-1, col/2, ctx);
     }
-    cncPut_reduced(targetHandle, row, col, context);
+    cncPut_reduced(target, row, col, ctx);
     //DEBUG_LOG("Put to %u %u (s=%u)\n", row, col, span);
 }
-

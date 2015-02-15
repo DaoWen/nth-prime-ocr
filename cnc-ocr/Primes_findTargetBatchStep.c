@@ -1,7 +1,9 @@
+#include "Primes.h"
 
-#include "Common.h"
-void findTargetBatchStep(u32 n, reducedItem reduced0, Context *context) {
-    ReducedResult *reducedPrimes = reduced0.item;
+/**
+ * Step function defintion for "findTargetBatchStep"
+ */
+void findTargetBatchStep(cncTag_t n, ReducedResult *reducedPrimes, PrimesCtx *ctx) {
     s64 N = n;
     N -= FACTOR_BATCH_COUNT+2;    // offset N by the seeded prime count
     assert(N < reducedPrimes->count && "Didn't find enough primes");
@@ -12,11 +14,9 @@ void findTargetBatchStep(u32 n, reducedItem reduced0, Context *context) {
         if (N <= 0) {
             N += batch.count;
             // schedule EDT to put nth prime with the found batch's guid
-            cncPrescribe_findNthPrimeStep(N, batch.index, context);
+            cncPrescribe_findNthPrimeStep(N, batch.index, ctx);
             return;
         }
     }
-    ERROR_DIE("Couldn't find Nth prime.\n");
+    CNC_REQUIRE(0, "Couldn't find Nth prime.\n");
 }
-
-

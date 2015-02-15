@@ -1,18 +1,13 @@
-#ifndef NV_PRIMES_COMMON_H
-#define NV_PRIMES_COMMON_H
-
+#ifndef _CNCOCR_PRIMES_TYPES_H_
+#define _CNCOCR_PRIMES_TYPES_H_
 
 /*******************************/
 /* Shared includes and defines */
 /*******************************/
 
-#ifndef __OCR__
-#define __OCR__
-#endif
-
 #include "ocr.h"
-#include "DataDriven.h"
 #include <string.h>
+#include <math.h>
 
 
 /****************************/
@@ -141,7 +136,11 @@ uIntPrime primeUpperBound(uPrimeCount x);
 uIntPrime primeLowerBound(uPrimeCount x);
 uPrimeCount piUpperBound(uIntPrime x);
 
-void putNthPrime(uPrimeCount n, uIntPrime nthPrime, struct Context *context);
-cncHandle_t primeSeeds(PrimeFactor **factorsDest);
+struct PrimesContext;
+void putNthPrime(uPrimeCount n, uIntPrime nthPrime, struct PrimesContext *ctx);
+PrimeFactor *primeSeeds();
 
-#endif /* NV_PRIMES_COMMON_H */
+typedef struct PrimesArguments {
+} PrimesArgs;
+
+#endif /*_CNCOCR_PRIMES_TYPES_H_*/

@@ -1,17 +1,15 @@
+#include "Primes.h"
 
-#include "Common.h"
-
-void nextGridFor(u32 totalWidth, u32 span, u32 row, u32 col, u32 *rowOut, u32 *colOut);
+extern void nextGridFor(u32 totalWidth, u32 span, u32 row, u32 col, cncTag_t *rowOut, cncTag_t *colOut);
 
 /**
  * Converts result of filters into a reduction node
  */
-cncHandle_t reductionLeaf(CandidatesInfo *batch, BatchRef *batchRef) {
-    ReducedResult *red;
+ReducedResult *reductionLeaf(CandidatesInfo *batch, BatchRef *batchRef) {
     u32 batchLimit = IS_SUMMARY_BATCH(batch) ? 0 : 16;
     // TODO - technically we could have empty batches if we encounter huge gaps
     ASSERT(batch->count > 0 && "Can't have empty batches!");
-    cncHandle_t redHandle = cncCreateItemSized_reduced(&red, sizeof(ReducedResult) + batchLimit*sizeof(BatchRef));
+    ReducedResult *red = cncCreateItemSized_reduced(sizeof(ReducedResult) + batchLimit*sizeof(BatchRef));
     red->count = batch->count;
     if (batchLimit > 0) {
         red->offset = 0;
@@ -23,16 +21,15 @@ cncHandle_t reductionLeaf(CandidatesInfo *batch, BatchRef *batchRef) {
         red->batchCount = 0;
     }
     red->batchLimit = batchLimit;
-    return redHandle;
+    return red;
 }
 
-void makeReducerLeafStep( u32 width, u32 row, u32 col, primesInfoItem primesInfo, Context *context){
+void makeReducerLeafStep(cncTag_t width, cncTag_t row, cncTag_t col, CandidatesInfo *primesInfo, PrimesCtx *ctx) {
     //DEBUG_LOG("Making leaf at %u %u (w=%u)\n", row, col, width);
-    BatchRef batchRef = { primesInfo.item->count, col };
+    BatchRef batchRef = { primesInfo->count, col };
     nextGridFor(width, 1, row, col, &row, &col);
-    cncPut_reduced(reductionLeaf(primesInfo.item, &batchRef), row, col, context);
+    cncPut_reduced(reductionLeaf(primesInfo, &batchRef), row, col, ctx);
     if (col % 2 == 0) {
-        cncPrescribe_reducerStep(width, 2, row-1, col/2, context);
+        cncPrescribe_reducerStep(width, 2, row-1, col/2, ctx);
     }
 }
-

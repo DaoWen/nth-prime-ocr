@@ -3,96 +3,78 @@
 // nick.vrvilo@rice.edu
 ////////////////////////////////////////////////////////////////////////////////
 
+$context {
+    uPrimeCount n;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // item collection declarations
 
-[ uIntPrime        * candidates     ]; // partially-filtered prime candidates
-[ CandidatesInfo   * candidatesInfo ]; // meta-data on prime candidate batches
-[ uIntPrime        * primes         ]; // confirmed prime numbers
-[ CandidatesInfo   * primesInfo     ]; // meta-data on batches of confirmed primes
-[ void             * factorsReq     ]; // request the next group of factors
-[ PrimeFactor      * factors        ]; // fully-grouped prime factors
-[ PrimeFactor      * collected      ]; // partially-grouped prime factors
-[ ReducedResult    * reduced        ]; // counted batches of primes in reduction tree
-[ uIntPrime          nthPrime       ]; // final result is the nth prime number
+[ uIntPrime        *candidates:     i, j ]; // partially-filtered prime candidates
+[ CandidatesInfo   *candidatesInfo: i, j ]; // meta-data on prime candidate batches
+[ uIntPrime        *primes:         i    ]; // confirmed prime numbers
+[ CandidatesInfo   *primesInfo:     i    ]; // meta-data on batches of confirmed primes
+[ void             *factorsReq:     i    ]; // request the next group of factors
+[ PrimeFactor      *factors:        i    ]; // fully-grouped prime factors
+[ PrimeFactor      *collected:      i, j ]; // partially-grouped prime factors
+[ ReducedResult    *reduced:        r, c ]; // counted batches of primes in reduction tree
+[ uIntPrime         nthPrime:       ()   ]; // final result is the nth prime number
 
 ////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////////////////////////////////////////////
-// tags declarations 
-
-< u32 [4] filterStartTag >;
-< u32 [2] filterContinueTag >;
-
-< u32 [4] collectFactorsTag >;
-
-< u32 [3] makeReducerLeafTag >;
-< u32 [4] reducerTag >;
-
-< u32 [1] findTargetBatchTag >;
-< u32 [2] findNthPrimeTag >;
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Step Prescriptions
-
-< filterStartTag > :: ( filterStartStep );
-< filterContinueTag > :: ( filterContinueStep );
-
-< collectFactorsTag > :: ( collectFactorsStep );
-
-< makeReducerLeafTag > :: ( makeReducerLeafStep );
-< reducerTag > :: ( reducerStep );
-
-< findTargetBatchTag > :: ( findTargetBatchStep );
-< findNthPrimeTag > :: ( findNthPrimeStep );
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Input output relationships
 
 // filter start
-[ factors: 0 ] -> ( filterStartStep: i, keep, base, count );
-( filterStartStep: i, keep, base, count ) -> [ candidates: i, 1 ];        // if continuing
-( filterStartStep: i, keep, base, count ) -> [ candidatesInfo: i, 1 ];    // if continuing
-( filterStartStep: i, keep, base, count ) -> < filterContinueTag: i, 1 >; // if continuing
-( filterStartStep: i, keep, base, count ) -> [ primes: i ];               // if ending
-( filterStartStep: i, keep, base, count ) -> [ primesInfo: i ];           // if ending
+( filterStartStep: i, keep, base, count )
+ <- [ factors: 0 ]
+ -> [ candidates: i, 1 ],         // if continuing
+    [ candidatesInfo: i, 1 ],     // if continuing
+    ( filterContinueStep: i, 1 ), // if continuing
+    [ primes: i ],                // if ending
+    [ primesInfo: i ];            // if ending
 
 // filter continue
-[ factors: j ], [ candidatesInfo: i, j ], [ candidates: i, j ] -> ( filterContinueStep: i, j );
-( filterContinueStep: i, j ) -> [ candidates: i, j+1 ];        // if continuing
-( filterContinueStep: i, j ) -> [ candidatesInfo: i, j+1 ];    // if continuing
-( filterContinueStep: i, j ) -> < filterContinueTag: i, j+1 >; // if continuing
-( filterContinueStep: i, j ) -> [ primes: i ];                 // if ending
-( filterContinueStep: i, j ) -> [ primesInfo: i ];             // if ending
+( filterContinueStep: i, j )
+ <- [ factors: j ], [ candidatesInfo: i, j ], [ candidates: i, j ]
+ -> [ candidates: i, j+1 ],        // if continuing
+    [ candidatesInfo: i, j+1 ],    // if continuing
+    ( filterContinueStep: i, j+1 ), // if continuing
+    [ primes: i ],                 // if ending
+    [ primesInfo: i ];             // if ending
 
 // collect factors into nice-sized batches
-[ collected: i, j ], [ primesInfo: j ], [ primes: j ], [ factorsReq: i ] -> ( collectFactorsStep: i, j, offset, count );
-( collectFactorsStep: i, j, offset, count ) -> [ collected: i+1, j ], < collectFactorsStep: i+1, j, offset, 0 >, [ factors: i ];
-( collectFactorsStep: i, j, offset, count ) -> [ collected: i, j+1 ], < collectFactorsStep: i, j+1, 0, count >;
+( collectFactorsStep: i, j, offset, count )
+ <- [ collected: i, j ], [ primesInfo: j ], [ primes: j ], [ factorsReq: i ]
+ -> [ collected: i+1, j ], ( collectFactorsStep: i+1, j, offset, 0 ), [ factors: i ],
+    [ collected: i, j+1 ], ( collectFactorsStep: i, j+1, 0, count );
 
 // reducer setup
-[ primesInfo: col ] -> ( makeReducerLeafStep: width, row, col );
-( makeReducerLeafStep: width, row, col ) -> [ reduced: row, col ];
+( makeReducerLeafStep: width, row, col )
+ <- [ primesInfo: col ]
+ -> [ reduced: row, col ];
 
 // reducer
-[ reduced: row+1, col*2 ], [ reduced: row+1, col*2+1 ] -> ( reducerStep: width, span, row, col );
-( reducerStep: width, span, row, col ) -> [ reduced: row, col ];
-( reducerStep: width, span, row, col ) -> < reducerTag: width, span*2, row/2, col/2 >;
+( reducerStep: width, span, row, col )
+ <- [ lhs @ reduced: row+1, col*2 ], [ rhs @ reduced: row+1, col*2+1 ]
+ -> [ reduced: row, col ],
+    ( reducerStep: width, span*2, row/2, col/2 );
 
-[ reduced: 0, 0 ] -> ( findTargetBatchStep: n );
-( findTargetBatchStep: n ) -> < findNthPrimeTag: n, i >;
+( findTargetBatchStep: n )
+ <- [ reduced: 0, 0 ]
+ -> ( findNthPrimeStep: n, i );
 
-[ primes: i ] -> ( findNthPrimeStep: n, i );
-( findNthPrimeStep: n, i ) -> [ nthPrime: 0 ];
+( findNthPrimeStep: n, i )
+ <- [ primes: i ]
+ -> [ nthPrime: () ];
 
 // Write graph inputs and start steps
-env -> [ factors : 0 ], < filterStartTag : 0, keep, base, count >;
-env -> < reducerTag : treeHeight-1, {0 .. treeWidth/2} >, < findTargetBatchTag : n >;
+( $init : () )
+ -> [ factors : 0 ], ( filterStartStep : 0, keep, base, count ),
+    ( reducerStep : treeHeight-1, $range(treeWidth/2) ), ( findTargetBatchStep : n );
 
 // Return outputs to the caller
 // (doesn't really work like that with OCR)
-[ nthPrime: 0 ] -> ( env: n );
+( $finalize: () ) <- [ nthPrime: () ];
+

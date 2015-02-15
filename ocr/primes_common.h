@@ -8,6 +8,9 @@
 
 #include "ocr.h"
 #include <string.h>
+#include <math.h>
+#include <assert.h>
+#include <stdlib.h>
 
 
 /****************************/
@@ -54,7 +57,7 @@ typedef uIntPrime uPrimeCount; // Should be the same size as uIntPrime
 
 #define ERROR_DIE(...) do { PRINTF(__VA_ARGS__); ocrShutdown(); exit(-1); } while (0)
 
-#define DBCREATE_BASIC(guid, ptr, size) DBCREATE(guid, ptr, size, DB_PROP_NONE, NULL_GUID, NO_ALLOC)
+#define DBCREATE_BASIC(guid, ptr, size) ocrDbCreate(guid, ptr, size, DB_PROP_NONE, NULL_GUID, NO_ALLOC)
 
 #define QWORD_COUNT_OF(x) (sizeof(x)/sizeof(u64))
 
@@ -156,5 +159,8 @@ typedef struct {
     uPrimeCount batchLimit;
     BatchRef batches[];
 } ReducedResult;
+
+#define MALLOC malloc
+#define FREE free
 
 #endif /* NV_PRIMES_COMMON_H */

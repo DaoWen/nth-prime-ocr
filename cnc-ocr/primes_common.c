@@ -1,5 +1,4 @@
-#include "primes_common.h"
-#include "Context.h"
+#include "Primes.h"
 
 // Calculating upper bound for the nth prime number
 // See http://stackoverflow.com/a/1069023/1427124
@@ -29,11 +28,10 @@ uPrimeCount piUpperBound(uIntPrime x) {
  * Computes the first FACTOR_BATCH_COUNT primes starting at 5.
  * This means the last prime returned is the (FACTOR_BATCH_COUNT+2)th prime.
  */
-cncHandle_t primeSeeds(PrimeFactor **factorsDest) {
-    PrimeFactor *factors;
-    cncHandle_t factorHandle = cncCreateItem_factors(&factors, FACTOR_BATCH_COUNT);
+PrimeFactor *primeSeeds() {
+    PrimeFactor *factors = cncCreateItemVector_factors(FACTOR_BATCH_COUNT);
     s32 foundCount = 0;
-    // Skip primes and multiples of 3 by alternating inc between 2 and 4
+    // Skip evens and multiples of 3 by alternating inc between 2 and 4
     for (uIntPrime n=5, inc=2; foundCount<FACTOR_BATCH_COUNT; n+=inc, inc=6-inc) {
         for (s32 i=0; i<foundCount; i++) {
             // If you find a prime factor then n isn't prime
@@ -46,14 +44,12 @@ lbl_next_candidate:; // labeled continue (semi-colon needed to avoid empty block
     }
     // Results out
     assert(foundCount == FACTOR_BATCH_COUNT);
-    *factorsDest = factors;
-    return factorHandle;
+    return factors;
 }
 
-void putNthPrime(uPrimeCount n, uIntPrime nthPrime, struct Context *context) {
-    uIntPrime *nthPrimePtr;
-    cncHandle_t nthPrimeHandle = cncCreateItem_nthPrime(&nthPrimePtr);
+void putNthPrime(uPrimeCount n, uIntPrime nthPrime, PrimesCtx *ctx) {
+    uIntPrime *nthPrimePtr = cncCreateItem_nthPrime();
     *nthPrimePtr = nthPrime;
-    cncPut_nthPrime(nthPrimeHandle, 0, context);
+    cncPut_nthPrime(nthPrimePtr, ctx);
 }
 
