@@ -1,11 +1,11 @@
 #include "Primes.h"
 
-ocrGuid_t mainEdt(u32 paramc, u64 paramv[], u32 depc, ocrEdtDep_t depv[]) {
+int cncMain(int argc, char *argv[]) {
 
     // Read argument N for Nth prime
-    CNC_REQUIRE(OCR_MAIN_ARGC==2, "Expected argument N to calculate Nth prime.\n");
-    uPrimeCount N = atoi(OCR_MAIN_ARGV(1));
-    CNC_REQUIRE(N>0, "Value for N is not in range: %s\n", OCR_MAIN_ARGV(1));
+    CNC_REQUIRE(argc==2, "Expected argument N to calculate Nth prime.\n");
+    uPrimeCount N = atoi(argv[1]);
+    CNC_REQUIRE(N>0, "Value for N is not in range: %s\n", argv[1]);
 
     // Create a new graph context
     PrimesCtx *context = Primes_create();
@@ -17,5 +17,5 @@ ocrGuid_t mainEdt(u32 paramc, u64 paramv[], u32 depc, ocrEdtDep_t depv[]) {
     // Exit when the graph execution completes
     CNC_SHUTDOWN_ON_FINALIZE(context);
 
-    return NULL_GUID;
+    return 0;
 }
