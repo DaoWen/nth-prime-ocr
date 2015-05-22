@@ -1,17 +1,17 @@
 # Make sure we can find OCR
 ifndef OCR_INSTALL
-ifndef XSTACK_SRC
-$(error Please define XSTACK_SRC or OCR_INSTALL)
+ifndef XSTACK_ROOT
+$(error Please define XSTACK_ROOT or OCR_INSTALL)
 endif
 OCR_TYPE ?= x86-pthread-x86
-OCR_INSTALL=$(XSTACK_SRC)/ocr/install/$(OCR_TYPE)
+OCR_INSTALL=$(XSTACK_ROOT)/ocr/install/$(OCR_TYPE)
 endif
 OCR_HOME=$(shell dirname `dirname $(OCR_INSTALL)`)
 OCR_AR=$(OCR_INSTALL)/lib/libocr.a
 
 # Auto-parse arguments for "make run"
 WORKLOAD_INPUT_FILE_IDX := 0
--include $(XSTACK_SRC)/apps/makefiles/make-pre.inc
+-include $(XSTACK_ROOT)/apps/makefiles/make-pre.inc
 
 WARNFLAGS=-Wall -Wextra -Wno-unused-parameter
 # Edit ~/xstack/ocr/build/common.mk to change the debug level for the OCR build

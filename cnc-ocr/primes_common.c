@@ -29,7 +29,7 @@ uPrimeCount piUpperBound(uIntPrime x) {
  * This means the last prime returned is the (FACTOR_BATCH_COUNT+2)th prime.
  */
 PrimeFactor *primeSeeds() {
-    PrimeFactor *factors = cncCreateItemVector_factors(FACTOR_BATCH_COUNT);
+    PrimeFactor *factors = cncItemCreateVector_factors(FACTOR_BATCH_COUNT);
     s32 foundCount = 0;
     // Skip evens and multiples of 3 by alternating inc between 2 and 4
     for (uIntPrime n=5, inc=2; foundCount<FACTOR_BATCH_COUNT; n+=inc, inc=6-inc) {
@@ -48,7 +48,7 @@ lbl_next_candidate:; // labeled continue (semi-colon needed to avoid empty block
 }
 
 void putNthPrime(uPrimeCount n, uIntPrime nthPrime, PrimesCtx *ctx) {
-    uIntPrime *nthPrimePtr = cncCreateItem_nthPrime();
+    uIntPrime *nthPrimePtr = cncItemCreate_nthPrime();
     *nthPrimePtr = nthPrime;
     cncPut_nthPrime(nthPrimePtr, ctx);
 }

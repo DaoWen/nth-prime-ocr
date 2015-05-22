@@ -5,7 +5,7 @@ extern u32 scheduleNextFilter(cncTag_t i, cncTag_t j, CandidatesInfo *info, uInt
 /**
  * Step function defintion for "filterContinueStep"
  */
-void filterContinueStep(cncTag_t i, cncTag_t j, PrimeFactor *factors, CandidatesInfo *info, uIntPrime *candidates, PrimesCtx *ctx) {
+void Primes_filterContinueStep(cncTag_t i, cncTag_t j, PrimeFactor *factors, CandidatesInfo *info, uIntPrime *candidates, PrimesCtx *ctx) {
     // Filter all candidate by the given batch of prime factor
     // Skip primes and multiples of 3 by alternating inc between 2 and 4
     u32 confirmedCount = info->confirmedCount;

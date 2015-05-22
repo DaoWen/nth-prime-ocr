@@ -14,7 +14,7 @@ void nextGridFor(u32 totalWidth, u32 span, u32 row, u32 col, cncTag_t *rowOut, c
 /**
  * Step function defintion for "reducerStep"
  */
-void reducerStep(cncTag_t width, cncTag_t span, cncTag_t row, cncTag_t col, ReducedResult *lhs, ReducedResult *rhs, PrimesCtx *ctx) {
+void Primes_reducerStep(cncTag_t width, cncTag_t span, cncTag_t row, cncTag_t col, ReducedResult *lhs, ReducedResult *rhs, PrimesCtx *ctx) {
     // Combine lhs and rhs
     ReducedResult *target;
     assert(lhs != rhs && "Aliased inputs");
@@ -31,7 +31,7 @@ void reducerStep(cncTag_t width, cncTag_t span, cncTag_t row, cncTag_t col, Redu
         size_t newBatchLimit = rhs->batchLimit;
         while (newBatchLimit < newBatchCount) newBatchLimit *= 2;
         size_t newSize = sizeof(ReducedResult)+newBatchLimit*sizeof(BatchRef);
-        target = cncCreateItemSized_reduced(newSize);
+        target = cncItemCreateSized_reduced(newSize);
         target->batchLimit = newBatchLimit;
     }
     // copy rhs's entries (careful! target and rhs may be aliased!)
@@ -44,8 +44,8 @@ void reducerStep(cncTag_t width, cncTag_t span, cncTag_t row, cncTag_t col, Redu
     target->batchCount = newBatchCount;
     // clean up
     assert(lhs != target);
-    cncFree(lhs); // free lhs memory
-    if (rhs != target) cncFree(rhs); // free rhs memory if not used
+    cncItemDestroy(lhs); // free lhs memory
+    if (rhs != target) cncItemDestroy(rhs); // free rhs memory if not used
     // Output
     nextGridFor(width, span, row, col, &row, &col);
     if (col%2 == 0 && row > 0) {

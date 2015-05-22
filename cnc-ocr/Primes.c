@@ -8,7 +8,7 @@ bool rangesOverlap(uIntPrime a0, uIntPrime a1, uIntPrime b0, uIntPrime b1) {
     return (a0 <= b0) ? (b0 < a1) : rangesOverlap(b0, b1, a0, a1);
 }
 
-void Primes_init(PrimesArgs *args, PrimesCtx *ctx) {
+void Primes_cncInitialize(PrimesArgs *args, PrimesCtx *ctx) {
     
     uPrimeCount N = ctx->n;
     // Trivial case: 1st or 2nd prime
@@ -78,7 +78,7 @@ void Primes_init(PrimesArgs *args, PrimesCtx *ctx) {
 }
 
 
-void Primes_finalize(uIntPrime nthPrime, PrimesCtx *ctx) {
+void Primes_cncFinalize(uIntPrime nthPrime, PrimesCtx *ctx) {
     PRINTF("The Nth prime where N=%lu is %lu.\n", (u64)ctx->n, (u64)nthPrime);
 }
 

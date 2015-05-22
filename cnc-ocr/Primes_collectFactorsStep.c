@@ -14,14 +14,14 @@
  *  - factorsReq: The request for this block of factors (no data--just keeps it demand-driven)
  *
  */
-void collectFactorsStep(cncTag_t i, cncTag_t j, cncTag_t batchOffset, cncTag_t factorCount, PrimeFactor *collected, CandidatesInfo *primesInfo, uIntPrime *primes, void *factorsReq, PrimesCtx *ctx) {
+void Primes_collectFactorsStep(cncTag_t i, cncTag_t j, cncTag_t batchOffset, cncTag_t factorCount, PrimeFactor *collected, CandidatesInfo *primesInfo, uIntPrime *primes, void *factorsReq, PrimesCtx *ctx) {
     PrimeFactor *collectedBatch = collected;
     assert(primes && "Should never require factors past requested primes.");
     bool hitSummarizedBatch = !IS_FACTOR_BATCH(primesInfo);
     // Make sure we have memory for collecting the factors
     if (!collectedBatch) {
         DEBUG_LOG("Starting factor batch %u\n", i);
-        collectedBatch = cncCreateItemVector_factors(FACTOR_BATCH_COUNT);
+        collectedBatch = cncItemCreateVector_factors(FACTOR_BATCH_COUNT);
         assert(factorCount == 0 && "Should be starting a new batch of factors");
     }
     // Process next batch

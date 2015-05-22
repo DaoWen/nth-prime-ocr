@@ -3,7 +3,7 @@
 /**
  * Step function defintion for "findTargetBatchStep"
  */
-void findTargetBatchStep(cncTag_t n, ReducedResult *reducedPrimes, PrimesCtx *ctx) {
+void Primes_findTargetBatchStep(cncTag_t n, ReducedResult *reducedPrimes, PrimesCtx *ctx) {
     s64 N = n;
     N -= FACTOR_BATCH_COUNT+2;    // offset N by the seeded prime count
     assert(N < reducedPrimes->count && "Didn't find enough primes");

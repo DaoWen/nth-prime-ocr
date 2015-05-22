@@ -9,7 +9,7 @@ ReducedResult *reductionLeaf(CandidatesInfo *batch, BatchRef *batchRef) {
     u32 batchLimit = IS_SUMMARY_BATCH(batch) ? 0 : 16;
     // TODO - technically we could have empty batches if we encounter huge gaps
     ASSERT(batch->count > 0 && "Can't have empty batches!");
-    ReducedResult *red = cncCreateItemSized_reduced(sizeof(ReducedResult) + batchLimit*sizeof(BatchRef));
+    ReducedResult *red = cncItemCreateSized_reduced(sizeof(ReducedResult) + batchLimit*sizeof(BatchRef));
     red->count = batch->count;
     if (batchLimit > 0) {
         red->offset = 0;
@@ -24,7 +24,7 @@ ReducedResult *reductionLeaf(CandidatesInfo *batch, BatchRef *batchRef) {
     return red;
 }
 
-void makeReducerLeafStep(cncTag_t width, cncTag_t row, cncTag_t col, CandidatesInfo *primesInfo, PrimesCtx *ctx) {
+void Primes_makeReducerLeafStep(cncTag_t width, cncTag_t row, cncTag_t col, CandidatesInfo *primesInfo, PrimesCtx *ctx) {
     //DEBUG_LOG("Making leaf at %u %u (w=%u)\n", row, col, width);
     BatchRef batchRef = { primesInfo->count, col };
     nextGridFor(width, 1, row, col, &row, &col);

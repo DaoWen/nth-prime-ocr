@@ -18,7 +18,7 @@ u32 scheduleNextFilter(cncTag_t i, cncTag_t j, CandidatesInfo *info, uIntPrime *
         DEBUG_LOG("Put batch %ld summarized\n", i);
         cncPut_primesInfo(info, i, ctx);
         cncPut_primes(NULL, i, ctx);
-        cncFree(candidates); // release full batch's memory
+        cncItemDestroy(candidates); // release full batch's memory
         return 0;
     }
     else {
@@ -32,15 +32,15 @@ u32 scheduleNextFilter(cncTag_t i, cncTag_t j, CandidatesInfo *info, uIntPrime *
     }
 }
 
-void filterStartStep(cncTag_t i, cncTag_t keep, cncTag_t base, cncTag_t count, PrimeFactor *factors, PrimesCtx *ctx) {
+void Primes_filterStartStep(cncTag_t i, cncTag_t keep, cncTag_t base, cncTag_t count, PrimeFactor *factors, PrimesCtx *ctx) {
     // Filter first batch, using the entire range starting from `base'
     uIntPrime end = base + CANDIDATE_BATCH_COUNT;
     // Fix base so it's not a multiple of 2 or 3
     base |= 1; // add 1 if even
     if (base % 3 == 0) base += 2; // skip multiples of 3
     // Set up memory for storing prime candidate that pass this filter
-    uIntPrime *candidates = cncCreateItemVector_candidates(CANDIDATE_BATCH_COUNT);
-    CandidatesInfo *info = cncCreateItem_candidatesInfo();
+    uIntPrime *candidates = cncItemCreateVector_candidates(CANDIDATE_BATCH_COUNT);
+    CandidatesInfo *info = cncItemCreate_candidatesInfo();
     info->baseValue = base;
     // Start with inc=4 if base%3 is 1, or inc=2 if base%3=2
     uIntPrime startInc = 6-(base%3)*2;
